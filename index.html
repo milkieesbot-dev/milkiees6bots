@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>milkiees6bots — Разработка Telegram-ботов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0b0f19;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        ul { list-style: none; }
+        img { max-width: 100%; display: block; }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .bg-effects {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .bg-effects .circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 20s ease-in-out infinite;
+        }
+        .bg-effects .circle:nth-child(1) {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(59,130,246,0.3), transparent);
+            top: -200px; left: -200px;
+            animation-delay: 0s;
+        }
+        .bg-effects .circle:nth-child(2) {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(99,102,241,0.2), transparent);
+            bottom: -150px; right: -150px;
+            animation-delay: -5s;
+        }
+        .bg-effects .circle:nth-child(3) {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(59,130,246,0.15), transparent);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -10s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 16px 0;
+            transition: all 0.3s ease;
+        }
+        .header.scrolled {
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        .header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            position: relative;
+        }
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, transparent);
+            border-radius: 1px;
+        }
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav a {
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.7);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav a:hover {
+            color: #fff;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .nav a.nav-order {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+        .nav a.nav-order:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(59, 130, 246, 0.5);
+        }
+        .burger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 8px;
+            background: none;
+            border: none;
+        }
+        .burger span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #fff;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        .burger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        .burger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .burger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 24px 80px;
+            position: relative;
+        }
+        .hero-content {
+            max-width: 800px;
+        }
+        .hero .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .hero h1 {
+            font-size: clamp(40px, 8vw, 72px);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, #60a5fa 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: clamp(16px, 2.5vw, 22px);
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            border-radius: 100px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 40px rgba(59, 130, 246, 0.5);
+        }
+        .btn-outline {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+        .btn-outline:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 60px;
+            flex-wrap: wrap;
+        }
+        .hero-stat {
+            text-align: center;
+        }
+        .hero-stat .num {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-stat .label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+
+        /* ===== SCROLL INDICATOR ===== */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255,255,255,0.3);
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: bounce 2s ease-in-out infinite;
+        }
+        .scroll-indicator .mouse {
+            width: 24px;
+            height: 38px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            position: relative;
+        }
+        .scroll-indicator .mouse::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 2px;
+            animation: scrollAnim 2s ease-in-out infinite;
+        }
+        @keyframes scrollAnim {
+            0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(16px); }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(8px); }
+        }
+
+        /* ===== SECTION COMMON ===== */
+        .section {
+            padding: 100px 0;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .section-header .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .section-header h2 {
+            font-size: clamp(28px, 4vw, 48px);
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        .section-header p {
+            color: rgba(255,255,255,0.5);
+            font-size: 18px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* ===== GLASS CARD ===== */
+        .glass {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            transition: all 0.4s ease;
+        }
+        .glass:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 40px rgba(59, 130, 246, 0.1);
+            transform: translateY(-4px);
+        }
+
+        /* ===== PORTFOLIO ===== */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .portfolio-card {
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        .portfolio-card .icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(99,102,241,0.15));
+            border: 1px solid rgba(59,130,246,0.1);
+        }
+        .portfolio-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .portfolio-card p {
+            color: rgba(255,255,255,0.5);
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+        .portfolio-card .price-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+        .portfolio-card .glow-hover {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(59,130,246,0.08), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+        .portfolio-card:hover .glow-hover {
+            opacity: 1;
+        }
+
+        /* ===== PRICING ===== */
+        .pricing-scroll {
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            margin: -16px;
+            padding: 16px;
+        }
+        .pricing-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .pricing-grid {
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+        }
+        .pricing-grid > .pricing-card {
+            min-width: 300px;
+            flex: 0 0 300px;
+            scroll-snap-align: start;
+        }
+        .pricing-card.featured {
+            transform: none;
+        }
+        @media (min-width: 1024px) {
+            .pricing-scroll {
+                overflow-x: visible;
+                overflow-y: visible;
+                margin: 0;
+                padding: 0;
+            }
+            .pricing-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+            }
+            .pricing-grid > .pricing-card {
+                min-width: auto;
+                flex: none;
+            }
+            .pricing-card.featured {
+                transform: scale(1.05);
+            }
+        }
+        @media (max-width: 1023px) {
+            .pricing-scroll {
+                cursor: grab;
+            }
+            .pricing-scroll:active {
+                cursor: grabbing;
+            }
+        }
+
+        /* ===== PRICING ===== */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            align-items: start;
+        }
+        .pricing-card {
+            padding: 40px 32px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .pricing-card.featured {
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.05);
+            transform: scale(1.05);
+        }
+        .pricing-card.featured .glow-border {
+            position: absolute;
+            inset: -1px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.3), transparent, rgba(99,102,241,0.3));
+            z-index: -1;
+            opacity: 0.5;
+            transition: opacity 0.4s ease;
+        }
+        .pricing-card.featured:hover .glow-border {
+            opacity: 1;
+        }
+        .pricing-card .plan-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+        .pricing-card .price {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 4px;
+        }
+        .pricing-card .price span {
+            font-size: 20px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.4);
+        }
+        .pricing-card .price-desc {
+            font-size: 14px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 24px;
+        }
+        .pricing-card ul {
+            text-align: left;
+            margin-bottom: 32px;
+            padding: 0;
+        }
+        .pricing-card ul li {
+            padding: 8px 0;
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .pricing-card ul li::before {
+            content: '✓';
+            color: #3b82f6;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .pricing-card .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .pricing-card.featured .btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        }
+        .pricing-card.featured .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 40px rgba(59, 130, 246, 0.6);
+        }
+
+        /* ===== FORUM ===== */
+        .forum-posts {
+            display: grid;
+            gap: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .forum-post {
+            padding: 24px 28px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: start;
+            position: relative;
+        }
+        .forum-post .post-main {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .forum-post .post-username {
+            font-size: 14px;
+            font-weight: 600;
+            color: #60a5fa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .forum-post .post-username::before {
+            content: '@';
+            color: rgba(255,255,255,0.3);
+        }
+        .forum-post .post-description {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.6;
+        }
+        .forum-post .post-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .forum-post .post-tag {
+            padding: 2px 10px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 500;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+        .forum-post .post-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        .forum-post .post-price {
+            padding: 4px 14px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(99,102,241,0.2));
+            border: 1px solid rgba(59,130,246,0.2);
+            color: #60a5fa;
+            white-space: nowrap;
+        }
+        .forum-post .post-manager {
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .forum-post .post-manager .manager-link {
+            color: #60a5fa;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .forum-post .post-manager .manager-link:hover {
+            color: #3b82f6;
+        }
+
+        /* ===== PAYMENT ===== */
+        .payment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .payment-card {
+            padding: 32px;
+            text-align: center;
+            position: relative;
+        }
+        .payment-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 40px rgba(59, 130, 246, 0.1);
+        }
+        .payment-icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+        .payment-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .payment-desc {
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 20px;
+        }
+        .payment-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+        .payment-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .payment-value {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #60a5fa;
+            word-break: break-all;
+        }
+        .payment-copy {
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: rgba(59,130,246,0.1);
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        .payment-copy:hover {
+            background: rgba(59,130,246,0.2);
+        }
+        .payment-copy.copied {
+            background: rgba(34,197,94,0.2);
+        }
+        .payment-note {
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+            font-style: italic;
+        }
+        .payment-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 24px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .payment-info-icon {
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+        .payment-info-text {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.6;
+        }
+        .payment-info-text strong {
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* ===== PAYMENT QR ===== */
+        .payment-qr {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .payment-qr:hover {
+            transform: scale(1.05);
+        }
+        .payment-qr img {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            background: #fff;
+            padding: 8px;
+        }
+        .payment-qr-hint {
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+        }
+        .payment-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .payment-copy, .payment-link {
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .payment-copy {
+            background: rgba(59,130,246,0.1);
+            color: #60a5fa;
+            border: none;
+            font-family: inherit;
+        }
+        .payment-copy:hover {
+            background: rgba(59,130,246,0.2);
+        }
+        .payment-copy.copied {
+            background: rgba(34,197,94,0.2);
+            color: #22c55e;
+        }
+        .payment-link {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+        }
+        .payment-link:hover {
+            color: #60a5fa;
+            background: rgba(59,130,246,0.1);
+        }
+        .popup-qr-container {
+            margin-bottom: 16px;
+        }
+        .popup-qr-container img {
+            width: 220px;
+            height: 220px;
+            border-radius: 16px;
+            background: #fff;
+            padding: 12px;
+        }
+        .popup-qr-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ===== ORDER ===== */
+        .order-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .order-info h2 {
+            font-size: clamp(28px, 3vw, 40px);
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        .order-info p {
+            color: rgba(255,255,255,0.5);
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+        .order-info .features {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .order-info .features li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+        }
+        .order-info .features li .feat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(59,130,246,0.1);
+            flex-shrink: 0;
+        }
+        .order-form {
+            padding: 40px;
+        }
+        .order-form .form-group {
+            margin-bottom: 20px;
+        }
+        .order-form label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 8px;
+        }
+        .order-form input,
+        .order-form textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            color: #fff;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        .order-form input:focus,
+        .order-form textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+            background: rgba(255,255,255,0.05);
+        }
+        .order-form input::placeholder,
+        .order-form textarea::placeholder {
+            color: rgba(255,255,255,0.2);
+        }
+        .order-form textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        .order-form .btn {
+            width: 100%;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        /* ===== SUCCESS POPUP ===== */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(11, 15, 25, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            animation: fadeIn 0.3s ease;
+        }
+        .popup-overlay.active {
+            display: flex;
+        }
+        .popup {
+            text-align: center;
+            padding: 60px 48px;
+            max-width: 480px;
+            width: 90%;
+            animation: popIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .popup .popup-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 36px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(99,102,241,0.2));
+            border: 1px solid rgba(59,130,246,0.2);
+        }
+        .popup h3 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+        .popup p {
+            color: rgba(255,255,255,0.6);
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .popup .manager-highlight {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 16px;
+            font-weight: 600;
+            background: rgba(59,130,246,0.1);
+            border: 1px solid rgba(59,130,246,0.2);
+            color: #60a5fa;
+        }
+        .popup .btn {
+            margin-top: 32px;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            padding: 40px 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .footer .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .footer .copyright {
+            font-size: 14px;
+            color: rgba(255,255,255,0.3);
+        }
+        .footer .socials {
+            display: flex;
+            gap: 12px;
+        }
+        .footer .socials a {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.4);
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+        .footer .socials a:hover {
+            background: rgba(59,130,246,0.1);
+            border-color: rgba(59,130,246,0.3);
+            color: #60a5fa;
+            transform: translateY(-2px);
+        }
+
+        /* ===== FADE-IN ANIMATIONS ===== */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .fade-up.delay-1 { transition-delay: 0.1s; }
+        .fade-up.delay-2 { transition-delay: 0.2s; }
+        .fade-up.delay-3 { transition-delay: 0.3s; }
+        .fade-up.delay-4 { transition-delay: 0.4s; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .nav {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 16px;
+                right: 16px;
+                flex-direction: column;
+                padding: 16px;
+                background: rgba(11, 15, 25, 0.95);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255,255,255,0.06);
+                border-radius: 16px;
+                gap: 4px;
+            }
+            .nav.open {
+                display: flex;
+            }
+            .nav a {
+                width: 100%;
+                text-align: center;
+                padding: 12px;
+            }
+            .burger {
+                display: flex;
+            }
+
+            .hero {
+                padding: 100px 16px 60px;
+            }
+            .hero-stats {
+                gap: 24px;
+            }
+            .hero-stat .num {
+                font-size: 28px;
+            }
+
+            .section {
+                padding: 60px 0;
+            }
+            .section-header {
+                margin-bottom: 40px;
+            }
+
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+            .pricing-card.featured {
+                transform: none;
+            }
+
+            .order-wrapper {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            .order-form {
+                padding: 24px;
+            }
+
+            .forum-post {
+                grid-template-columns: 1fr;
+            }
+            .forum-post .post-right {
+                text-align: left;
+                align-items: flex-start;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .footer .container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .popup {
+                padding: 40px 24px;
+            }
+
+            .scroll-indicator {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-buttons .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .pricing-card {
+                padding: 28px 20px;
+            }
+        }
+    </style>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+    <!-- ===== BACKGROUND EFFECTS ===== -->
+    <div class="bg-effects">
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+    </div>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header" id="header">
+        <div class="container">
+            <a href="#" class="logo">milkiees6bots</a>
+            <nav class="nav" id="nav">
+                <a href="#portfolio">Портфолио</a>
+                <a href="#pricing">Цены</a>
+                <a href="#forum">Форум</a>
+                <a href="#order" class="nav-order">Заказать</a>
+            </nav>
+            <button class="burger" id="burger" aria-label="Меню">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <span class="badge">🚀 Telegram Bot Development</span>
+            <h1>Разработка Telegram-ботов под ключ</h1>
+            <p>AI-боты, магазины, CRM, модерация и автоматизация — превратим вашу идею в работающий бизнес-инструмент</p>
+            <div class="hero-buttons">
+                <a href="#order" class="btn btn-primary">
+                    <span>📨</span> Заказать бота
+                </a>
+                <a href="#portfolio" class="btn btn-outline">
+                    <span>📁</span> Портфолио
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="num">10+</div>
+                    <div class="label">Проектов</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="num">100%</div>
+                    <div class="label">Гарантия</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="num">24/7</div>
+                    <div class="label">Поддержка</div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="mouse"></div>
+            <span>Скролл</span>
+        </div>
+    </section>
+
+    <!-- ===== PORTFOLIO ===== -->
+    <section class="section" id="portfolio">
+        <div class="container">
+            <div class="section-header fade-up">
+                <span class="tag">Portfolio</span>
+                <h2>Наши проекты</h2>
+                <p>Реализованные решения для бизнеса и стартапов</p>
+            </div>
+            <div class="portfolio-grid">
+                <article class="portfolio-card glass fade-up delay-1">
+                    <div class="glow-hover"></div>
+                    <div class="icon">🤖</div>
+                    <h3>AI Assistant Bot</h3>
+                    <p>Умный ассистент на основе GPT. Отвечает на вопросы, интегрируется с CRM, анализирует данные, работает с документами в реальном времени.</p>
+                    <span class="price-tag">от $75</span>
+                </article>
+                <article class="portfolio-card glass fade-up delay-2">
+                    <div class="glow-hover"></div>
+                    <div class="icon">🛒</div>
+                    <h3>Shop Bot</h3>
+                    <p>Полноценный магазин в Telegram: каталог, корзина, оплата через ЮKassa/CryptoBot, уведомления о статусе заказа и история покупок.</p>
+                    <span class="price-tag">от $50</span>
+                </article>
+                <article class="portfolio-card glass fade-up delay-3">
+                    <div class="glow-hover"></div>
+                    <div class="icon">🛡️</div>
+                    <h3>Moderation Bot</h3>
+                    <p>Автоматическая модерация групп: фильтр спама, анти-флуд, капча при входе, welcome-сообщения, система рейтинга и жалоб.</p>
+                    <span class="price-tag">от $35</span>
+                </article>
+                <article class="portfolio-card glass fade-up delay-1">
+                    <div class="glow-hover"></div>
+                    <div class="icon">📊</div>
+                    <h3>CRM Bot</h3>
+                    <p>Система управления клиентами: воронка продаж, напоминания, задачи, статистика, экспорт данных, интеграция с Google Sheets.</p>
+                    <span class="price-tag">от $80</span>
+                </article>
+                <article class="portfolio-card glass fade-up delay-2">
+                    <div class="glow-hover"></div>
+                    <div class="icon">🎮</div>
+                    <h3>Game Bot</h3>
+                    <p>Экономические и RPG игры прямо в Telegram: рейтинги, турниры, внутриигровая валюта, мини-игры и мультиплеер.</p>
+                    <span class="price-tag">от $45</span>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PRICING ===== -->
+    <section class="section" id="pricing">
+        <div class="container">
+            <div class="section-header fade-up">
+                <span class="tag">Pricing</span>
+                <h2>Прозрачные цены</h2>
+                <p>Выберите тариф под ваш проект</p>
+            </div>
+            <div class="pricing-scroll">
+            <div class="pricing-grid">
+                <div class="pricing-card glass fade-up delay-1">
+                    <div class="plan-name">Simple</div>
+                    <div class="price">$25 <span>/ бот</span></div>
+                    <div class="price-desc">Базовый функционал</div>
+                    <ul>
+                        <li>1-3 команды</li>
+                        <li>База данных SQLite</li>
+                        <li>Базовая админ-панель</li>
+                        <li>Деплой на сервер</li>
+                        <li>Поддержка 7 дней</li>
+                    </ul>
+                    <a href="#order" class="btn btn-outline">Выбрать</a>
+                </div>
+                <div class="pricing-card glass featured fade-up delay-2">
+                    <div class="glow-border"></div>
+                    <div class="plan-name">Advanced</div>
+                    <div class="price">$50 <span>/ бот</span></div>
+                    <div class="price-desc">Оптимальное решение</div>
+                    <ul>
+                        <li>Неограниченные команды</li>
+                        <li>PostgreSQL / MySQL</li>
+                        <li>Полная админ-панель</li>
+                        <li>Интеграция с API</li>
+                        <li>Поддержка 30 дней</li>
+                    </ul>
+                    <a href="#order" class="btn btn-primary">Выбрать</a>
+                </div>
+                <div class="pricing-card glass fade-up delay-3">
+                    <div class="plan-name">Premium AI</div>
+                    <div class="price">$100 <span>/ бот</span></div>
+                    <div class="price-desc">Максимум возможностей</div>
+                    <ul>
+                        <li>AI / GPT интеграция</li>
+                        <li>Любая БД + Redis</li>
+                        <li>Кастомный дизайн</li>
+                        <li>Мультиязычность</li>
+                        <li>Бессрочная поддержка</li>
+                    </ul>
+                    <a href="#order" class="btn btn-outline">Выбрать</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FORUM ===== -->
+
+    <!-- ===== PAYMENT ===== -->
+    <section class="section" id="payment">
+        <div class="container">
+            <div class="section-header fade-up">
+                <span class="tag">Payment</span>
+                <h2>Способы оплаты</h2>
+                <p>Принимаем криптовалюту и международные переводы</p>
+            </div>
+            <div class="payment-grid">
+                <div class="payment-card glass fade-up delay-1">
+                    <div class="payment-icon">💳</div>
+                    <div class="payment-name">PayPal</div>
+                    <div class="payment-desc">Международные переводы через PayPal</div>
+                    <div class="payment-details">
+                        <span class="payment-label">Реквизиты:</span>
+                        <span class="payment-value">@procentmd1</span>
+                    </div>
+                    <div class="payment-note">После согласования заказа</div>
+                </div>
+                <div class="payment-card glass fade-up delay-2">
+                    <div class="payment-icon">₮</div>
+                    <div class="payment-name">TRC20 (USDT)</div>
+                    <div class="payment-desc">Перевод USDT в сети TRON (TRC20)</div>
+                    <div class="payment-details">
+                        <span class="payment-label">QR-код / Адрес</span>
+                        <div class="payment-qr" onclick="openQrPopup('TRC20 (USDT)', 'TTwoCjgUSF1xcuUxZQkc9WTESBzk1dAuua', 'https://tronscan.org/#/address/')">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=TTwoCjgUSF1xcuUxZQkc9WTESBzk1dAuua" alt="QR TRC20">
+                            <div class="payment-qr-hint">Нажмите для увеличения</div>
+                        </div>
+                        <span class="payment-value payment-address">TTwoCjgUSF1xcuUxZQkc9WTESBzk1dAuua</span>
+                        <div class="payment-actions">
+                            <span class="payment-copy" onclick="copyAddress(this)" data-address="TTwoCjgUSF1xcuUxZQkc9WTESBzk1dAuua">📋 Копировать</span>
+                            <a class="payment-link" href="https://tronscan.org/#/address/TTwoCjgUSF1xcuUxZQkc9WTESBzk1dAuua" target="_blank">🔗 Открыть в explorer</a>
+                        </div>
+                    </div>
+                    <div class="payment-note">Минимальная комиссия, быстрые переводы</div>
+                </div>
+                <div class="payment-card glass fade-up delay-3">
+                    <div class="payment-icon">💎</div>
+                    <div class="payment-name">TON (USDT)</div>
+                    <div class="payment-desc">Перевод USDT в сети TON</div>
+                    <div class="payment-details">
+                        <span class="payment-label">QR-код / Адрес</span>
+                        <div class="payment-qr" onclick="openQrPopup('TON (USDT)', 'UQDNkkkzv0gtF5nXxdmuG-mFIHQKBonahf8QuBklQmEbhEHZ', 'https://tonscan.org/address/')">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=UQDNkkkzv0gtF5nXxdmuG-mFIHQKBonahf8QuBklQmEbhEHZ" alt="QR TON">
+                            <div class="payment-qr-hint">Нажмите для увеличения</div>
+                        </div>
+                        <span class="payment-value payment-address">UQDNkkkzv0gtF5nXxdmuG-mFIHQKBonahf8QuBklQmEbhEHZ</span>
+                        <div class="payment-actions">
+                            <span class="payment-copy" onclick="copyAddress(this)" data-address="UQDNkkkzv0gtF5nXxdmuG-mFIHQKBonahf8QuBklQmEbhEHZ">📋 Копировать</span>
+                            <a class="payment-link" href="https://tonscan.org/address/UQDNkkkzv0gtF5nXxdmuG-mFIHQKBonahf8QuBklQmEbhEHZ" target="_blank">🔗 Открыть в explorer</a>
+                        </div>
+                    </div>
+                    <div class="payment-note">Удобно для оплаты через Telegram Wallet</div>
+                </div>
+            </div>
+            <div class="payment-info glass fade-up">
+                <div class="payment-info-icon">🔒</div>
+                <div class="payment-info-text">
+                    <strong>Оплата после согласования проекта.</strong>
+                    Реквизиты для оплаты отправляются после утверждения заявки менеджером.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== ORDER ===== -->
+    <section class="section" id="order">
+        <div class="container">
+            <div class="section-header fade-up">
+                <span class="tag">Order</span>
+                <h2>Заказать бота</h2>
+                <p>Опишите вашу идею — мы воплотим её в жизнь</p>
+            </div>
+            <div class="order-wrapper">
+                <div class="order-info fade-up delay-1">
+                    <h2>Готовы начать?</h2>
+                    <p>Оставьте заявку и наш менеджер свяжется с вами в течение 24 часов, чтобы обсудить детали проекта.</p>
+                    <ul class="features">
+                        <li>
+                            <span class="feat-icon">🚀</span>
+                            <span>Старт разработки в 48 часов</span>
+                        </li>
+                        <li>
+                            <span class="feat-icon">⚡</span>
+                            <span>Срок разработки до 7 дней</span>
+                        </li>
+                        <li>
+                            <span class="feat-icon">🛡️</span>
+                            <span>Гарантия качества на каждый проект</span>
+                        </li>
+                        <li>
+                            <span class="feat-icon">💬</span>
+                            <span>Бесплатные консультации и поддержка</span>
+                        </li>
+                        <li>
+                            <span class="feat-icon">⚡</span>
+                            <span>Гибкие сроки и поэтапная оплата</span>
+                        </li>
+                    </ul>
+                </div>
+                <form class="order-form glass fade-up delay-2" id="orderForm">
+                    <div class="form-group">
+                        <label for="name">Ваше имя</label>
+                        <input type="text" id="name" name="name" placeholder="Иван Иванов" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tg">Telegram username</label>
+                        <input type="text" id="tg" name="tg" placeholder="@username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Описание проекта</label>
+                        <textarea id="description" name="description" placeholder="Опишите идею вашего бота, функционал, сроки и примерный бюджет..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <span>📨</span> Отправить заявку
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SUCCESS POPUP ===== -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup glass">
+            <div class="popup-icon">🎉</div>
+            <h3>Спасибо за заявку!</h3>
+            <p>Ваша заявка успешно отправлена.</p>
+            <p style="margin-bottom: 8px;">Ждите ответ от менеджера</p>
+            <a href="https://t.me/procentmd1" class="manager-highlight" target="_blank">@procentmd1</a>
+            <br>
+            <button class="btn btn-outline" onclick="closePopup()">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ===== QR POPUP ===== -->
+    <div class="popup-overlay" id="qrPopup">
+        <div class="popup glass" style="max-width: 420px;">
+            <div class="popup-qr-container">
+                <img id="qrPopupImage" src="" alt="QR Code">
+            </div>
+            <h3 id="qrPopupTitle" style="font-size: 18px; margin-bottom: 8px;">Адрес кошелька</h3>
+            <div class="popup-qr-address" id="qrPopupAddress" style="font-size: 12px; word-break: break-all; color: rgba(255,255,255,0.6); margin-bottom: 16px;"></div>
+            <div class="popup-qr-actions">
+                <span class="btn btn-outline" onclick="copyQrAddress()" style="padding: 10px 20px; font-size: 14px;">📋 Копировать адрес</span>
+                <a class="btn btn-primary" id="qrPopupLink" href="#" target="_blank" style="padding: 10px 20px; font-size: 14px;">🔗 Открыть в explorer</a>
+            </div>
+            <br>
+            <button class="btn btn-outline" onclick="closeQrPopup()" style="padding: 10px 20px; font-size: 14px;">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="copyright">© 2026 milkiees6bots — Разработка Telegram-ботов</div>
+            <div class="socials">
+                <a href="https://t.me/procentmd1" target="_blank" aria-label="Telegram" title="Telegram">✈️</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ===== TELEGRAM MINI APP =====
+        let tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.enableClosingConfirmation();
+            // Apply Telegram theme colors
+            document.documentElement.style.setProperty('--tg-bg', tg.backgroundColor || '#0b0f19');
+            document.documentElement.style.setProperty('--tg-text', tg.textColor || '#ffffff');
+            document.documentElement.style.setProperty('--tg-hint', tg.hintColor || 'rgba(255,255,255,0.5)');
+            document.documentElement.style.setProperty('--tg-accent', tg.buttonColor || '#3b82f6');
+            document.body.style.backgroundColor = tg.backgroundColor || '#0b0f19';
+        }
+
+        // ===== BURGER MENU =====
+        const burger = document.getElementById('burger');
+        const nav = document.getElementById('nav');
+        burger.addEventListener('click', () => {
+            burger.classList.toggle('active');
+            nav.classList.toggle('open');
+        });
+        // Close nav on link click
+        nav.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                burger.classList.remove('active');
+                nav.classList.remove('open');
+            });
+        });
+
+        // ===== HEADER SCROLL =====
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        });
+        // Trigger once on load
+        if (window.scrollY > 50) header.classList.add('scrolled');
+
+        // ===== SMOOTH SCROLL (polyfill for scroll-behavior) =====
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // ===== FADE-IN ON SCROLL =====
+        const fadeEls = document.querySelectorAll('.fade-up');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        fadeEls.forEach(el => observer.observe(el));
+
+        // ===== FORM SUBMISSION =====
+        const form = document.getElementById('orderForm');
+        const popup = document.getElementById('popup');
+
+        const BOT_TOKEN = '8670453694:AAGTGS5bkeAKJYz3VOGRMxFJS0CF_kpHTQE';
+        const CHAT_ID = 6657672762;
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const senderName = document.getElementById('name').value.trim();
+            const tgUser = document.getElementById('tg').value.trim();
+            const descText = document.getElementById('description').value.trim();
+
+            // Close Mini App if inside Telegram
+            if (tg) {
+                tg.sendData(JSON.stringify({
+                    name: senderName,
+                    telegram: tgUser,
+                    description: descText
+                }));
+            }
+
+            const message =
+                '<b>\u{1F4E9} \u041D\u043E\u0432\u0430\u044F \u0437\u0430\u044F\u0432\u043A\u0430 \u0441 \u0441\u0430\u0439\u0442\u0430!</b>\\n\\n' +
+                '<b>\u{1F464} \u0418\u043C\u044F:</b> ' + escapeHtml(senderName) + '\\n' +
+                '<b>\u{1F4F1} Telegram:</b> ' + escapeHtml(tgUser) + '\\n' +
+                '<b>\u{1F4DD} \u041E\u043F\u0438\u0441\u0430\u043D\u0438\u0435:</b>\\n' + escapeHtml(descText);
+
+            const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+            } catch (err) {
+                console.warn('Telegram send failed, showing popup anyway:', err);
+            }
+
+            popup.classList.add('active');
+            form.reset();
+        });
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function closePopup() {
+            popup.classList.remove('active');
+        }
+
+        // Close popup on overlay click
+        popup.addEventListener('click', function(e) {
+            if (e.target === this) closePopup();
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && popup.classList.contains('active')) {
+                closePopup();
+            }
+        });
+
+        // ===== COUNTER ANIMATION (optional nice touch) =====
+        function animateCounters() {
+            document.querySelectorAll('.hero-stat .num').forEach(el => {
+                const text = el.textContent;
+                const hasPlus = text.includes('+');
+                const hasPercent = text.includes('%');
+                const target = parseInt(text.replace(/[^0-9]/g, ''));
+                if (isNaN(target)) return;
+                let current = 0;
+                const step = Math.max(1, Math.floor(target / 40));
+                const interval = setInterval(() => {
+                    current += step;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(interval);
+                    }
+                    el.textContent = current + (hasPlus ? '+' : hasPercent ? '%' : '');
+                }, 30);
+            });
+        }
+
+        // Trigger counter animation when hero is visible
+        const heroObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounters();
+                    heroObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+        heroObserver.observe(document.querySelector('.hero'));
+
+        // ===== QR POPUP =====
+        let qrData = {};
+
+        function openQrPopup(title, address, explorerUrl) {
+            qrData = { address: address };
+            document.getElementById('qrPopupImage').src = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent(address);
+            document.getElementById('qrPopupTitle').textContent = title;
+            document.getElementById('qrPopupAddress').textContent = address;
+            document.getElementById('qrPopupLink').href = explorerUrl + address;
+            document.getElementById('qrPopup').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeQrPopup() {
+            document.getElementById('qrPopup').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function copyQrAddress() {
+            const address = qrData.address || '';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(address);
+            }
+            const btn = document.querySelector('.popup-qr-actions .btn-outline');
+            if (btn) {
+                btn.textContent = '✅ Скопировано';
+                setTimeout(() => { btn.textContent = '📋 Копировать адрес'; }, 2000);
+            }
+        }
+
+        document.getElementById('qrPopup')?.addEventListener('click', function(e) {
+            if (e.target === this) closeQrPopup();
+        });
+
+        // ===== COPY ADDRESS =====
+        function copyAddress(el) {
+            const address = el.getAttribute('data-address');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(address);
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = address;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+            el.textContent = '✅';
+            el.classList.add('copied');
+            setTimeout(() => {
+                el.textContent = '📋';
+                el.classList.remove('copied');
+            }, 2000);
+        }
+
+        console.log('milkiees6bots — Site loaded successfully! 🚀');
+    </script>
+
+    <!-- Twemoji - Apple-style emojis on all platforms -->
+    <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+    <script>
+        if (typeof twemoji !== 'undefined') {
+            twemoji.parse(document.body, {
+                folder: 'svg',
+                ext: '.svg',
+                base: 'https://cdn.jsdelivr.net/npm/@twemoji/svg@latest/'
+            });
+        }
+    </script>
+</body>
+</html>
